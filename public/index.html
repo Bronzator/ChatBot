@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT Web Server</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 ChatGPT Web Interface</h1>
+            <p class="subtitle">Powered by OpenAI API</p>
+        </header>
+
+        <main>
+            <section class="chat-section">
+                <div class="chat-container" id="chatContainer">
+                    <div class="welcome-message">
+                        <h2>Welcome!</h2>
+                        <p>Enter a prompt below to start chatting with ChatGPT.</p>
+                    </div>
+                </div>
+
+                <form id="chatForm" class="chat-form">
+                    <div class="input-group">
+                        <textarea 
+                            id="promptInput" 
+                            name="prompt" 
+                            placeholder="Enter your message here..." 
+                            rows="3"
+                            required
+                        ></textarea>
+                        <button type="submit" id="sendBtn">
+                            <span class="btn-text">Send</span>
+                            <span class="btn-loading" style="display: none;">Sending...</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="info-section">
+                <div class="info-card">
+                    <h3>📡 API Endpoint</h3>
+                    <code>POST /chat</code>
+                    <p>Send a JSON body with <code>{"prompt": "your message"}</code></p>
+                </div>
+
+                <div class="info-card">
+                    <h3>📥 Retrieve Response</h3>
+                    <code>GET /chat/{id}</code>
+                    <p>Get the response by session ID returned from POST</p>
+                </div>
+
+                <div class="info-card">
+                    <h3>🔧 Admin Panel</h3>
+                    <a href="/admin/login" class="admin-link">Access Admin Dashboard</a>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>ChatGPT Web Server © 2024 | <a href="/admin/login">Admin Login</a></p>
+        </footer>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
