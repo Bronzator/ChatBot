@@ -6,7 +6,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import admin.AdminHandler;
+import auth.UserAuthHandler;
 import chat.ChatHandler;
+import chat.ChatApiHandler;
 import logging.ServerLogger;
 import util.SecurityUtils;
 
@@ -33,6 +35,12 @@ public class RequestRouter {
     
     /** Admin handler for /admin routes */
     private final AdminHandler adminHandler;
+    
+    /** User authentication handler for /auth routes */
+    private final UserAuthHandler userAuthHandler;
+    
+    /** Chat API handler for /api/chat routes (authenticated) */
+    private final ChatApiHandler chatApiHandler;
     
     /** Logger instance */
     private final ServerLogger logger;
@@ -82,6 +90,8 @@ public class RequestRouter {
         this.server = server;
         this.chatHandler = new ChatHandler(server);
         this.adminHandler = new AdminHandler(server);
+        this.userAuthHandler = new UserAuthHandler();
+        this.chatApiHandler = new ChatApiHandler(server);
         this.logger = ServerLogger.getInstance();
         this.staticRoot = "public";
     }
@@ -99,10 +109,23 @@ public class RequestRouter {
         
         try {
             // Route based on path prefix
+            
+            // Auth routes (user registration, login, oauth)
+            if (path.startsWith("/auth")) {
+                return userAuthHandler.handle(request);
+            }
+            
+            // Chat API routes (authenticated chat endpoints)
+            if (path.startsWith("/api/chat")) {
+                return chatApiHandler.handle(request);
+            }
+            
+            // Legacy chat routes (public chat endpoint)
             if (path.startsWith("/chat")) {
                 return chatHandler.handle(request);
             }
             
+            // Admin routes
             if (path.startsWith("/admin")) {
                 return adminHandler.handle(request);
             }

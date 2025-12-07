@@ -215,6 +215,18 @@ public class HttpResponse {
     }
     
     /**
+     * Creates a 201 Created response with JSON body.
+     */
+    public static HttpResponse createdJson(String body) {
+        HttpResponse response = new HttpResponse();
+        response.setStatusCode(201);
+        response.setStatusMessage("Created");
+        response.setHeader("Content-Type", "application/json; charset=UTF-8");
+        response.setBody(body);
+        return response;
+    }
+    
+    /**
      * Creates a 302 Found redirect response.
      */
     public static HttpResponse redirect(String location) {
@@ -282,6 +294,18 @@ public class HttpResponse {
         response.setStatusCode(405);
         response.setStatusMessage("Method Not Allowed");
         response.setHeader("Allow", allowedMethods);
+        response.setHeader("Content-Type", "text/plain; charset=UTF-8");
+        response.setBody("405 Method Not Allowed");
+        return response;
+    }
+    
+    /**
+     * Creates a 405 Method Not Allowed response without specifying allowed methods.
+     */
+    public static HttpResponse methodNotAllowed() {
+        HttpResponse response = new HttpResponse();
+        response.setStatusCode(405);
+        response.setStatusMessage("Method Not Allowed");
         response.setHeader("Content-Type", "text/plain; charset=UTF-8");
         response.setBody("405 Method Not Allowed");
         return response;

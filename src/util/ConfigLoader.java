@@ -173,6 +173,94 @@ public class ConfigLoader {
         return getProperty("openai.default_model", DEFAULT_MODEL);
     }
     
+    // ==================== Database Settings ====================
+    
+    /**
+     * Gets the database URL.
+     */
+    public String getDatabaseUrl() {
+        String url = System.getenv("DATABASE_URL");
+        if (url != null && !url.isEmpty()) return url;
+        return getProperty("database.url", "jdbc:postgresql://localhost:5432/chatbot");
+    }
+    
+    /**
+     * Gets the database username.
+     */
+    public String getDatabaseUsername() {
+        String user = System.getenv("DATABASE_USER");
+        if (user != null && !user.isEmpty()) return user;
+        return getProperty("database.username", "chatbot");
+    }
+    
+    /**
+     * Gets the database password.
+     */
+    public String getDatabasePassword() {
+        String pass = System.getenv("DATABASE_PASSWORD");
+        if (pass != null && !pass.isEmpty()) return pass;
+        return getProperty("database.password", "chatbot");
+    }
+    
+    /**
+     * Gets the database connection pool size.
+     */
+    public int getDatabasePoolSize() {
+        return getIntProperty("database.pool_size", 10);
+    }
+    
+    // ==================== JWT Settings ====================
+    
+    /**
+     * Gets the JWT secret key.
+     */
+    public String getJwtSecret() {
+        String secret = System.getenv("JWT_SECRET");
+        if (secret != null && !secret.isEmpty()) return secret;
+        return getProperty("jwt.secret", "");
+    }
+    
+    /**
+     * Gets JWT access token expiry in milliseconds.
+     */
+    public long getJwtAccessExpiry(long defaultValue) {
+        return getLongProperty("jwt.access_expiry_ms", defaultValue);
+    }
+    
+    /**
+     * Gets JWT refresh token expiry in milliseconds.
+     */
+    public long getJwtRefreshExpiry(long defaultValue) {
+        return getLongProperty("jwt.refresh_expiry_ms", defaultValue);
+    }
+    
+    // ==================== Google OAuth Settings ====================
+    
+    /**
+     * Gets Google OAuth client ID.
+     */
+    public String getGoogleClientId() {
+        String id = System.getenv("GOOGLE_CLIENT_ID");
+        if (id != null && !id.isEmpty()) return id;
+        return getProperty("google.client_id", "");
+    }
+    
+    /**
+     * Gets Google OAuth client secret.
+     */
+    public String getGoogleClientSecret() {
+        String secret = System.getenv("GOOGLE_CLIENT_SECRET");
+        if (secret != null && !secret.isEmpty()) return secret;
+        return getProperty("google.client_secret", "");
+    }
+    
+    /**
+     * Gets Google OAuth redirect URI.
+     */
+    public String getGoogleRedirectUri() {
+        return getProperty("google.redirect_uri", "http://localhost:8080/auth/google/callback");
+    }
+    
     // ==================== Helper Methods ====================
     
     /**
@@ -193,6 +281,21 @@ public class ConfigLoader {
                 return Integer.parseInt(value.trim());
             } catch (NumberFormatException e) {
                 System.err.println("Invalid integer for " + key + ": " + value);
+            }
+        }
+        return defaultValue;
+    }
+    
+    /**
+     * Gets a long property with default value.
+     */
+    private long getLongProperty(String key, long defaultValue) {
+        String value = properties.getProperty(key);
+        if (value != null && !value.isEmpty()) {
+            try {
+                return Long.parseLong(value.trim());
+            } catch (NumberFormatException e) {
+                System.err.println("Invalid long for " + key + ": " + value);
             }
         }
         return defaultValue;

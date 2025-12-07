@@ -61,8 +61,8 @@ public class ChatGPTClient {
         }
         
         try {
-            // Build request body
-            String requestBody = buildRequestBody(session.getPrompt(), model);
+            // Build request body with conversation history if available
+            String requestBody = buildRequestBody(session.getPrompt(), model, session.getConversationHistory());
             
             // Create connection
             URL url = new URL(API_URL);
@@ -112,20 +112,42 @@ public class ChatGPTClient {
     
     /**
      * Builds the JSON request body for the ChatGPT API.
+     * Includes conversation history for context if available.
      * 
      * @param prompt The user's prompt
      * @param model The model to use
+     * @param conversationHistory Previous messages for context
      * @return JSON request body
      */
-    private String buildRequestBody(String prompt, String model) {
-        // Escape special characters in prompt
-        String escapedPrompt = escapeJson(prompt);
+    private String buildRequestBody(String prompt, String model, java.util.List<java.util.Map<String, String>> conversationHistory) {
+        StringBuilder messagesJson = new StringBuilder("[");
+        
+        // Add conversation history
+        if (conversationHistory != null && !conversationHistory.isEmpty()) {
+            for (java.util.Map<String, String> msg : conversationHistory) {
+                messagesJson.append("{\"role\":\"").append(escapeJson(msg.get("role")))
+                    .append("\",\"content\":\"").append(escapeJson(msg.get("content")))
+                    .append("\"},");
+            }
+        }
+        
+        // Add current user message
+        messagesJson.append("{\"role\":\"user\",\"content\":\"")
+            .append(escapeJson(prompt))
+            .append("\"}]");
         
         return String.format(
-            "{\"model\":\"%s\",\"messages\":[{\"role\":\"user\",\"content\":\"%s\"}]}",
+            "{\"model\":\"%s\",\"messages\":%s}",
             model,
-            escapedPrompt
+            messagesJson.toString()
         );
+    }
+    
+    /**
+     * Builds the JSON request body (legacy without history).
+     */
+    private String buildRequestBody(String prompt, String model) {
+        return buildRequestBody(prompt, model, null);
     }
     
     /**

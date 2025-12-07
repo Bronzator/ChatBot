@@ -4,369 +4,677 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - ChatGPT Server</title>
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="admin-container">
+        <!-- Header -->
         <header class="admin-header">
-            <h1>⚙️ Admin Dashboard</h1>
-            <div class="header-actions">
-                <span id="currentUser">Admin</span>
-                <a href="/admin/logout" class="logout-btn">Logout</a>
+            <div>
+                <h1>🛡️ Admin Dashboard</h1>
+                <p class="text-muted">Manage your ChatGPT server</p>
             </div>
+            <nav class="admin-nav">
+                <a href="/">← Back to Chat</a>
+                <button class="btn btn-secondary" id="refreshBtn">
+                    🔄 Refresh
+                </button>
+                <button class="btn btn-danger" id="logoutBtn">
+                    Logout
+                </button>
+            </nav>
         </header>
 
-        <nav class="admin-nav">
-            <button class="nav-btn active" data-tab="status">Server Status</button>
-            <button class="nav-btn" data-tab="sessions">Chat Sessions</button>
-            <button class="nav-btn" data-tab="logs">Server Logs</button>
-            <button class="nav-btn" data-tab="settings">Settings</button>
-        </nav>
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <h3>Total Users</h3>
+                <div class="value" id="totalUsers">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Active Sessions</h3>
+                <div class="value" id="activeSessions">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Chats</h3>
+                <div class="value" id="totalChats">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Messages Today</h3>
+                <div class="value" id="messagesToday">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>API Requests</h3>
+                <div class="value" id="apiRequests">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Server Uptime</h3>
+                <div class="value" id="serverUptime">-</div>
+            </div>
+        </div>
 
-        <main class="admin-main">
-            <!-- Server Status Tab -->
-            <section id="statusTab" class="tab-content active">
-                <h2>Server Status</h2>
-                <div class="status-grid">
-                    <div class="status-card">
-                        <h3>Uptime</h3>
-                        <p class="status-value" id="uptime">--</p>
-                    </div>
-                    <div class="status-card">
-                        <h3>Total Requests</h3>
-                        <p class="status-value" id="totalRequests">--</p>
-                    </div>
-                    <div class="status-card">
-                        <h3>Chat Sessions</h3>
-                        <p class="status-value" id="totalSessions">--</p>
-                    </div>
-                    <div class="status-card">
-                        <h3>Active Connections</h3>
-                        <p class="status-value" id="activeConnections">--</p>
-                    </div>
-                    <div class="status-card">
-                        <h3>Current Model</h3>
-                        <p class="status-value" id="currentModel">--</p>
-                    </div>
-                    <div class="status-card">
-                        <h3>Chat Status</h3>
-                        <p class="status-value" id="chatStatus">--</p>
-                    </div>
+        <!-- Users Section -->
+        <section class="admin-section">
+            <div class="admin-section-header">
+                <h2>👥 Users</h2>
+                <div>
+                    <input type="text" placeholder="Search users..." id="userSearch" class="form-group" style="width: 250px; margin: 0; padding: 8px 12px;">
                 </div>
-                <button class="refresh-btn" onclick="loadStatus()">🔄 Refresh Status</button>
-            </section>
+            </div>
+            <div class="admin-section-content">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Provider</th>
+                            <th>Chats</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTable">
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">Loading users...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-            <!-- Chat Sessions Tab -->
-            <section id="sessionsTab" class="tab-content">
-                <h2>Chat Sessions</h2>
-                <div class="sessions-controls">
-                    <label>
-                        Show: 
-                        <select id="sessionLimit" onchange="loadSessions()">
-                            <option value="25">25</option>
-                            <option value="50" selected>50</option>
-                            <option value="100">100</option>
-                            <option value="200">200</option>
-                        </select>
-                    </label>
-                    <button class="refresh-btn" onclick="loadSessions()">🔄 Refresh</button>
-                </div>
-                <div class="sessions-table-container">
-                    <table class="sessions-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Prompt</th>
-                                <th>Model</th>
-                                <th>Tokens</th>
-                                <th>Time</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sessionsTableBody">
-                            <tr>
-                                <td colspan="5">Loading...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+        <!-- Recent Activity Section -->
+        <section class="admin-section">
+            <div class="admin-section-header">
+                <h2>📊 Recent Activity</h2>
+            </div>
+            <div class="admin-section-content">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activityTable">
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">Loading activity...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-            <!-- Server Logs Tab -->
-            <section id="logsTab" class="tab-content">
-                <h2>Server Logs</h2>
-                <div class="logs-controls">
-                    <label>
-                        Lines: 
-                        <select id="logLines" onchange="loadLogs()">
-                            <option value="50">50</option>
-                            <option value="100" selected>100</option>
-                            <option value="200">200</option>
-                            <option value="500">500</option>
-                        </select>
-                    </label>
-                    <button class="refresh-btn" onclick="loadLogs()">🔄 Refresh</button>
-                    <label class="auto-refresh">
-                        <input type="checkbox" id="autoRefreshLogs" onchange="toggleAutoRefresh()">
-                        Auto-refresh
-                    </label>
-                </div>
-                <pre class="logs-display" id="logsDisplay">Loading logs...</pre>
-            </section>
-
-            <!-- Settings Tab -->
-            <section id="settingsTab" class="tab-content">
-                <h2>Settings</h2>
-                
-                <div class="settings-group">
-                    <h3>ChatGPT Model</h3>
-                    <div class="setting-row">
-                        <select id="modelSelect">
-                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                            <option value="gpt-3.5-turbo-16k">GPT-3.5 Turbo 16K</option>
-                            <option value="gpt-4">GPT-4</option>
-                            <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                            <option value="gpt-4o">GPT-4o</option>
-                            <option value="gpt-4o-mini">GPT-4o Mini</option>
-                        </select>
-                        <button class="action-btn" onclick="changeModel()">Update Model</button>
+        <!-- Server Configuration -->
+        <section class="admin-section">
+            <div class="admin-section-header">
+                <h2>⚙️ Server Configuration</h2>
+            </div>
+            <div class="admin-section-content">
+                <form id="configForm">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                        <div class="form-group">
+                            <label>Default AI Model</label>
+                            <select id="defaultModel">
+                                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                                <option value="gpt-4">GPT-4</option>
+                                <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Max Tokens per Request</label>
+                            <input type="number" id="maxTokens" value="2048" min="100" max="8000">
+                        </div>
+                        <div class="form-group">
+                            <label>Rate Limit (requests/min)</label>
+                            <input type="number" id="rateLimit" value="20" min="1" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label>System Prompt</label>
+                            <textarea id="systemPrompt" rows="4" placeholder="Enter default system prompt..."></textarea>
+                        </div>
                     </div>
-                </div>
-
-                <div class="settings-group">
-                    <h3>Chat Service</h3>
-                    <div class="setting-row">
-                        <span id="chatEnabledStatus">Chat is enabled</span>
-                        <button class="action-btn toggle-btn" id="toggleChatBtn" onclick="toggleChat()">
-                            Disable Chat
-                        </button>
+                    <div style="margin-top: 20px;">
+                        <button type="submit" class="btn btn-primary">Save Configuration</button>
                     </div>
-                    <p class="setting-description">
-                        Disabling chat will put the server in maintenance mode. 
-                        New chat requests will receive a 503 Service Unavailable response.
-                    </p>
-                </div>
+                </form>
+            </div>
+        </section>
 
-                <div class="settings-group">
-                    <h3>Danger Zone</h3>
-                    <div class="setting-row danger">
-                        <span>Clear all chat sessions from memory</span>
-                        <button class="action-btn danger-btn" onclick="clearSessions()">
-                            Clear Sessions
-                        </button>
+        <!-- API Key Management -->
+        <section class="admin-section">
+            <div class="admin-section-header">
+                <h2>🔑 API Key Management</h2>
+            </div>
+            <div class="admin-section-content">
+                <form id="apiKeyForm">
+                    <div class="form-group">
+                        <label>OpenAI API Key</label>
+                        <div style="display: flex; gap: 12px;">
+                            <input type="password" id="apiKeyInput" placeholder="sk-..." style="flex: 1;">
+                            <button type="button" class="btn btn-secondary" id="toggleApiKey">Show</button>
+                            <button type="submit" class="btn btn-primary">Update Key</button>
+                        </div>
+                        <span class="form-hint">Current key: <span id="currentKeyStatus">••••••••••••</span></span>
                     </div>
-                </div>
-            </section>
-        </main>
+                </form>
+            </div>
+        </section>
 
-        <footer class="admin-footer">
-            <p>ChatGPT Web Server Admin Panel | <a href="/">Back to Chat</a></p>
-        </footer>
+        <!-- System Logs -->
+        <section class="admin-section">
+            <div class="admin-section-header">
+                <h2>📋 System Logs</h2>
+                <button class="btn btn-secondary" id="clearLogsBtn">Clear Logs</button>
+            </div>
+            <div class="admin-section-content">
+                <div id="logsContainer" style="background: var(--bg-tertiary); border-radius: var(--radius-md); padding: 16px; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 13px;">
+                    <div class="text-muted">Loading logs...</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <h2>🔐 Admin Login</h2>
+            <form id="loginForm">
+                <div class="form-error" id="loginError"></div>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Login</button>
+            </form>
+        </div>
     </div>
 
     <script>
-        // Tab navigation
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Update active nav button
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                // Show corresponding tab
-                const tabName = btn.dataset.tab;
-                document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-                document.getElementById(tabName + 'Tab').classList.add('active');
-                
-                // Load data for the tab
-                switch(tabName) {
-                    case 'status': loadStatus(); break;
-                    case 'sessions': loadSessions(); break;
-                    case 'logs': loadLogs(); break;
-                    case 'settings': loadStatus(); break;
-                }
-            });
+        // State
+        let isAuthenticated = false;
+        let authToken = localStorage.getItem('adminToken');
+
+        // DOM Elements
+        const loginModal = document.getElementById('loginModal');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+        const toastContainer = document.getElementById('toastContainer');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            setupEventListeners();
         });
 
-        // Load server status
-        async function loadStatus() {
+        // Check authentication
+        async function checkAuth() {
+            if (!authToken) {
+                showLoginModal();
+                return;
+            }
+
             try {
-                const response = await fetch('/admin/api/status');
-                if (!response.ok) {
-                    throw new Error('Failed to load status');
+                const response = await fetch('/admin/verify', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    isAuthenticated = true;
+                    hideLoginModal();
+                    loadDashboard();
+                } else {
+                    localStorage.removeItem('adminToken');
+                    authToken = null;
+                    showLoginModal();
                 }
+            } catch (error) {
+                showToast('Connection error', 'error');
+                showLoginModal();
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Login form
+            loginForm.addEventListener('submit', handleLogin);
+
+            // Refresh button
+            document.getElementById('refreshBtn').addEventListener('click', loadDashboard);
+
+            // Logout button
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+
+            // Config form
+            document.getElementById('configForm').addEventListener('submit', saveConfig);
+
+            // API key form
+            document.getElementById('apiKeyForm').addEventListener('submit', updateApiKey);
+
+            // Toggle API key visibility
+            document.getElementById('toggleApiKey').addEventListener('click', toggleApiKeyVisibility);
+
+            // Clear logs
+            document.getElementById('clearLogsBtn').addEventListener('click', clearLogs);
+
+            // User search
+            document.getElementById('userSearch').addEventListener('input', debounce(searchUsers, 300));
+        }
+
+        // Handle login
+        async function handleLogin(e) {
+            e.preventDefault();
+            loginError.textContent = '';
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
                 const data = await response.json();
-                
-                document.getElementById('uptime').textContent = data.uptimeFormatted || '--';
-                document.getElementById('totalRequests').textContent = data.totalRequests || 0;
-                document.getElementById('totalSessions').textContent = data.totalChatSessions || 0;
-                document.getElementById('activeConnections').textContent = data.activeConnections || 0;
-                document.getElementById('currentModel').textContent = data.currentModel || '--';
-                document.getElementById('chatStatus').textContent = data.chatEnabled ? 'Enabled' : 'Disabled';
-                document.getElementById('chatStatus').className = 'status-value ' + (data.chatEnabled ? 'status-ok' : 'status-error');
-                
-                // Update settings tab
-                document.getElementById('modelSelect').value = data.currentModel || 'gpt-3.5-turbo';
-                updateChatToggleUI(data.chatEnabled);
-                
+
+                if (response.ok && data.success) {
+                    authToken = data.token || 'admin-session';
+                    localStorage.setItem('adminToken', authToken);
+                    isAuthenticated = true;
+                    hideLoginModal();
+                    loadDashboard();
+                    showToast('Login successful', 'success');
+                } else {
+                    loginError.textContent = data.error || 'Invalid credentials';
+                }
             } catch (error) {
-                console.error('Error loading status:', error);
+                loginError.textContent = 'Connection error';
             }
         }
 
-        // Load chat sessions
-        async function loadSessions() {
+        // Handle logout
+        function handleLogout() {
+            localStorage.removeItem('adminToken');
+            authToken = null;
+            isAuthenticated = false;
+            showLoginModal();
+            showToast('Logged out', 'success');
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            loadStats();
+            loadUsers();
+            loadActivity();
+            loadLogs();
+            loadConfig();
+        }
+
+        // Load stats
+        async function loadStats() {
             try {
-                const limit = document.getElementById('sessionLimit').value;
-                const response = await fetch(`/admin/api/sessions?limit=${limit}`);
-                if (!response.ok) {
-                    throw new Error('Failed to load sessions');
+                const response = await fetch('/admin/stats', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const stats = await response.json();
+                    document.getElementById('totalUsers').textContent = stats.totalUsers || '0';
+                    document.getElementById('activeSessions').textContent = stats.activeSessions || '0';
+                    document.getElementById('totalChats').textContent = stats.totalChats || '0';
+                    document.getElementById('messagesToday').textContent = stats.messagesToday || '0';
+                    document.getElementById('apiRequests').textContent = stats.apiRequests || '0';
+                    document.getElementById('serverUptime').textContent = formatUptime(stats.uptime || 0);
                 }
-                const sessions = await response.json();
-                
-                const tbody = document.getElementById('sessionsTableBody');
-                
-                if (sessions.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5">No sessions found</td></tr>';
-                    return;
-                }
-                
-                tbody.innerHTML = sessions.map(session => `
-                    <tr>
-                        <td><code>${escapeHtml(session.id)}</code></td>
-                        <td>${escapeHtml(session.promptPreview)}</td>
-                        <td>${escapeHtml(session.model || '--')}</td>
-                        <td>${session.totalTokens || 0}</td>
-                        <td>${formatTimestamp(session.timestamp)}</td>
-                    </tr>
-                `).join('');
-                
             } catch (error) {
-                console.error('Error loading sessions:', error);
-                document.getElementById('sessionsTableBody').innerHTML = 
-                    '<tr><td colspan="5">Error loading sessions</td></tr>';
+                console.error('Failed to load stats:', error);
             }
         }
 
-        // Load server logs
+        // Load users
+        async function loadUsers() {
+            const tbody = document.getElementById('usersTable');
+            
+            try {
+                const response = await fetch('/admin/users', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const users = await response.json();
+                    
+                    if (users.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No users found</td></tr>';
+                        return;
+                    }
+
+                    tbody.innerHTML = users.map(user => `
+                        <tr>
+                            <td>${user.id}</td>
+                            <td>${escapeHtml(user.name || '-')}</td>
+                            <td>${escapeHtml(user.email)}</td>
+                            <td><span class="badge ${user.google_id ? 'badge-success' : 'badge-warning'}">${user.google_id ? 'Google' : 'Email'}</span></td>
+                            <td>${user.chatCount || 0}</td>
+                            <td>${formatDate(user.created_at)}</td>
+                            <td>
+                                <button class="icon-btn" onclick="viewUser(${user.id})" title="View">👁️</button>
+                                <button class="icon-btn delete" onclick="deleteUser(${user.id})" title="Delete">🗑️</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Failed to load users</td></tr>';
+            }
+        }
+
+        // Load activity
+        async function loadActivity() {
+            const tbody = document.getElementById('activityTable');
+            
+            try {
+                const response = await fetch('/admin/activity', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    const activities = await response.json();
+                    
+                    if (activities.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No recent activity</td></tr>';
+                        return;
+                    }
+
+                    tbody.innerHTML = activities.map(activity => `
+                        <tr>
+                            <td>${formatTime(activity.timestamp)}</td>
+                            <td>${escapeHtml(activity.user || 'System')}</td>
+                            <td><span class="badge badge-${getActivityBadge(activity.action)}">${activity.action}</span></td>
+                            <td>${escapeHtml(activity.details || '-')}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Failed to load activity</td></tr>';
+            }
+        }
+
+        // Load logs
         async function loadLogs() {
-            try {
-                const lines = document.getElementById('logLines').value;
-                const response = await fetch(`/admin/api/logs?lines=${lines}`);
-                if (!response.ok) {
-                    throw new Error('Failed to load logs');
-                }
-                const data = await response.json();
-                
-                document.getElementById('logsDisplay').textContent = data.logs || 'No logs available';
-                
-            } catch (error) {
-                console.error('Error loading logs:', error);
-                document.getElementById('logsDisplay').textContent = 'Error loading logs';
-            }
-        }
-
-        // Change ChatGPT model
-        async function changeModel() {
-            const model = document.getElementById('modelSelect').value;
+            const container = document.getElementById('logsContainer');
             
             try {
-                const response = await fetch('/admin/api/model', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ model: model })
+                const response = await fetch('/admin/logs', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
                 });
-                
+
                 if (response.ok) {
-                    alert('Model updated to: ' + model);
-                    loadStatus();
-                } else {
-                    alert('Failed to update model');
+                    const logs = await response.json();
+                    
+                    if (logs.length === 0) {
+                        container.innerHTML = '<div class="text-muted">No logs available</div>';
+                        return;
+                    }
+
+                    container.innerHTML = logs.map(log => {
+                        const levelColor = {
+                            'INFO': 'var(--accent-primary)',
+                            'WARN': 'var(--accent-warning)',
+                            'ERROR': 'var(--accent-danger)'
+                        }[log.level] || 'var(--text-secondary)';
+                        
+                        return `<div style="margin-bottom: 8px;">
+                            <span style="color: var(--text-muted)">[${formatTime(log.timestamp)}]</span>
+                            <span style="color: ${levelColor}; font-weight: 600;">[${log.level}]</span>
+                            <span>${escapeHtml(log.message)}</span>
+                        </div>`;
+                    }).join('');
+                    
+                    container.scrollTop = container.scrollHeight;
                 }
             } catch (error) {
-                console.error('Error changing model:', error);
-                alert('Error changing model');
+                container.innerHTML = '<div class="text-muted">Failed to load logs</div>';
             }
         }
 
-        // Toggle chat enabled/disabled
-        async function toggleChat() {
+        // Load config
+        async function loadConfig() {
             try {
-                const response = await fetch('/admin/api/toggle-chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({})
+                const response = await fetch('/admin/config', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
                 });
-                
+
                 if (response.ok) {
-                    const data = await response.json();
-                    updateChatToggleUI(data.chatEnabled);
-                    loadStatus();
-                } else {
-                    alert('Failed to toggle chat');
+                    const config = await response.json();
+                    document.getElementById('defaultModel').value = config.model || 'gpt-3.5-turbo';
+                    document.getElementById('maxTokens').value = config.maxTokens || 2048;
+                    document.getElementById('rateLimit').value = config.rateLimit || 20;
+                    document.getElementById('systemPrompt').value = config.systemPrompt || '';
+                    
+                    if (config.hasApiKey) {
+                        document.getElementById('currentKeyStatus').textContent = 'Configured ✓';
+                    }
                 }
             } catch (error) {
-                console.error('Error toggling chat:', error);
-                alert('Error toggling chat');
+                console.error('Failed to load config:', error);
             }
         }
 
-        function updateChatToggleUI(enabled) {
-            const statusSpan = document.getElementById('chatEnabledStatus');
-            const toggleBtn = document.getElementById('toggleChatBtn');
-            
-            if (enabled) {
-                statusSpan.textContent = 'Chat is enabled';
-                statusSpan.className = 'status-ok';
-                toggleBtn.textContent = 'Disable Chat';
-                toggleBtn.classList.remove('enabled');
-            } else {
-                statusSpan.textContent = 'Chat is disabled';
-                statusSpan.className = 'status-error';
-                toggleBtn.textContent = 'Enable Chat';
-                toggleBtn.classList.add('enabled');
-            }
-        }
+        // Save config
+        async function saveConfig(e) {
+            e.preventDefault();
 
-        // Clear sessions (placeholder)
-        function clearSessions() {
-            if (confirm('Are you sure you want to clear all chat sessions? This cannot be undone.')) {
-                alert('This feature requires server-side implementation');
-            }
-        }
+            const config = {
+                model: document.getElementById('defaultModel').value,
+                maxTokens: parseInt(document.getElementById('maxTokens').value),
+                rateLimit: parseInt(document.getElementById('rateLimit').value),
+                systemPrompt: document.getElementById('systemPrompt').value
+            };
 
-        // Auto-refresh for logs
-        let autoRefreshInterval = null;
-        
-        function toggleAutoRefresh() {
-            const checkbox = document.getElementById('autoRefreshLogs');
-            
-            if (checkbox.checked) {
-                autoRefreshInterval = setInterval(loadLogs, 5000);
-            } else {
-                if (autoRefreshInterval) {
-                    clearInterval(autoRefreshInterval);
-                    autoRefreshInterval = null;
+            try {
+                const response = await fetch('/admin/config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(config)
+                });
+
+                if (response.ok) {
+                    showToast('Configuration saved', 'success');
+                } else {
+                    showToast('Failed to save configuration', 'error');
                 }
+            } catch (error) {
+                showToast('Connection error', 'error');
             }
+        }
+
+        // Update API key
+        async function updateApiKey(e) {
+            e.preventDefault();
+
+            const apiKey = document.getElementById('apiKeyInput').value;
+            if (!apiKey) {
+                showToast('Please enter an API key', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin/apikey', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ apiKey })
+                });
+
+                if (response.ok) {
+                    showToast('API key updated', 'success');
+                    document.getElementById('apiKeyInput').value = '';
+                    document.getElementById('currentKeyStatus').textContent = 'Configured ✓';
+                } else {
+                    showToast('Failed to update API key', 'error');
+                }
+            } catch (error) {
+                showToast('Connection error', 'error');
+            }
+        }
+
+        // Toggle API key visibility
+        function toggleApiKeyVisibility() {
+            const input = document.getElementById('apiKeyInput');
+            const btn = document.getElementById('toggleApiKey');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = 'Hide';
+            } else {
+                input.type = 'password';
+                btn.textContent = 'Show';
+            }
+        }
+
+        // Clear logs
+        async function clearLogs() {
+            if (!confirm('Are you sure you want to clear all logs?')) return;
+
+            try {
+                const response = await fetch('/admin/logs', {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    document.getElementById('logsContainer').innerHTML = '<div class="text-muted">Logs cleared</div>';
+                    showToast('Logs cleared', 'success');
+                }
+            } catch (error) {
+                showToast('Failed to clear logs', 'error');
+            }
+        }
+
+        // Search users
+        async function searchUsers() {
+            const query = document.getElementById('userSearch').value;
+            // For now, just filter client-side (can be enhanced with server-side search)
+            loadUsers();
+        }
+
+        // View user
+        function viewUser(userId) {
+            // Could open a modal with user details
+            alert(`View user ${userId} - Feature coming soon`);
+        }
+
+        // Delete user
+        async function deleteUser(userId) {
+            if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
+
+            try {
+                const response = await fetch(`/admin/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    showToast('User deleted', 'success');
+                    loadUsers();
+                } else {
+                    showToast('Failed to delete user', 'error');
+                }
+            } catch (error) {
+                showToast('Connection error', 'error');
+            }
+        }
+
+        // Modal functions
+        function showLoginModal() {
+            loginModal.classList.add('show');
+        }
+
+        function hideLoginModal() {
+            loginModal.classList.remove('show');
+        }
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <span class="toast-message">${message}</span>
+                <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+            `;
+            toastContainer.appendChild(toast);
+            
+            setTimeout(() => toast.remove(), 5000);
         }
 
         // Utility functions
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/&/g, '&amp;')
-                      .replace(/</g, '&lt;')
-                      .replace(/>/g, '&gt;')
-                      .replace(/"/g, '&quot;')
-                      .replace(/'/g, '&#39;');
+        function formatUptime(seconds) {
+            if (seconds < 60) return `${seconds}s`;
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+            return `${Math.floor(seconds / 86400)}d`;
         }
 
-        function formatTimestamp(ts) {
-            if (!ts) return '--';
-            const date = new Date(ts);
-            return date.toLocaleString();
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString();
         }
 
-        // Initial load
-        loadStatus();
+        function formatTime(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleTimeString();
+        }
+
+        function getActivityBadge(action) {
+            const badges = {
+                'login': 'success',
+                'logout': 'warning',
+                'register': 'success',
+                'chat': 'success',
+                'error': 'danger'
+            };
+            return badges[action] || 'warning';
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
     </script>
 </body>
 </html>

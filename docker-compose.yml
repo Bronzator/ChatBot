@@ -1,0 +1,119 @@
+# =====================================================
+# ChatGPT Web Server - Docker Compose
+# =====================================================
+# 
+# Usage:
+#   docker-compose up -d          # Start all services
+#   docker-compose down           # Stop all services
+#   docker-compose logs -f app    # View app logs
+#   docker-compose ps             # Check service status
+#
+# =====================================================
+
+version: '3.8'
+
+services:
+  # =====================================================
+  # PostgreSQL Database
+  # =====================================================
+  db:
+    image: postgres:16-alpine
+    container_name: chatbot-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: chatbot
+      POSTGRES_USER: chatbot
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-chatbot_secure_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chatbot -d chatbot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chatbot-network
+
+  # =====================================================
+  # ChatGPT Web Server Application
+  # =====================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chatbot-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Server settings
+      SERVER_PORT: 8080
+      
+      # Database settings
+      DATABASE_URL: jdbc:postgresql://db:5432/chatbot
+      DATABASE_USER: chatbot
+      DATABASE_PASSWORD: ${DB_PASSWORD:-chatbot_secure_password}
+      
+      # OpenAI API Key (required)
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      
+      # JWT Secret (auto-generated if not set)
+      JWT_SECRET: ${JWT_SECRET:-}
+      
+      # Google OAuth (optional)
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      
+      # Admin password (optional, uses default if not set)
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    volumes:
+      - app_logs:/app/logs
+      - ./config:/app/config:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - chatbot-network
+
+  # =====================================================
+  # Adminer - Database Management UI (optional)
+  # =====================================================
+  adminer:
+    image: adminer:latest
+    container_name: chatbot-adminer
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "${ADMINER_PORT:-8081}:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    networks:
+      - chatbot-network
+    profiles:
+      - tools
+
+# =====================================================
+# Networks
+# =====================================================
+networks:
+  chatbot-network:
+    driver: bridge
+
+# =====================================================
+# Volumes
+# =====================================================
+volumes:
+  postgres_data:
+    driver: local
+  app_logs:
+    driver: local

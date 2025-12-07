@@ -1,6 +1,6 @@
 package chat;
 
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Represents a single chat session with ChatGPT.
@@ -10,9 +10,10 @@ import java.util.UUID;
  * - User's prompt
  * - ChatGPT's response
  * - Response metadata (tokens, model, etc.)
+ * - Conversation history for context
  * 
  * @author ChatBot Project Team
- * @version 1.0
+ * @version 2.0
  */
 public class ChatSession {
     
@@ -34,6 +35,9 @@ public class ChatSession {
     /** Whether the session has received a response */
     private boolean completed;
     
+    /** Conversation history for context */
+    private List<Map<String, String>> conversationHistory;
+    
     /**
      * Constructs a new ChatSession with a generated ID.
      */
@@ -41,6 +45,7 @@ public class ChatSession {
         this.id = generateId();
         this.createdAt = System.currentTimeMillis();
         this.completed = false;
+        this.conversationHistory = new ArrayList<>();
     }
     
     /**
@@ -52,6 +57,7 @@ public class ChatSession {
         this.id = id;
         this.createdAt = System.currentTimeMillis();
         this.completed = false;
+        this.conversationHistory = new ArrayList<>();
     }
     
     /**
@@ -111,6 +117,21 @@ public class ChatSession {
     
     public boolean isCompleted() {
         return completed;
+    }
+    
+    public List<Map<String, String>> getConversationHistory() {
+        return conversationHistory;
+    }
+    
+    public void setConversationHistory(List<Map<String, String>> history) {
+        this.conversationHistory = history != null ? history : new ArrayList<>();
+    }
+    
+    public void addToHistory(String role, String content) {
+        Map<String, String> message = new HashMap<>();
+        message.put("role", role);
+        message.put("content", content);
+        conversationHistory.add(message);
     }
     
     /**
